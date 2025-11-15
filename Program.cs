@@ -1,55 +1,29 @@
 ﻿using System;
 using SFML;
 
-namespace window_core
+internal static class Program
 {
-    internal static class Program
+    private static void Main()
     {
-        private static void Main()
+        var mode = new SFML.Window.VideoMode(800, 600);
+        var window = new SFML.Graphics.RenderWindow(mode, "SIAKOD game");
+        window.SetFramerateLimit(60);
+        
+        Camera camera = new(scale: 20, aspectRatio: 800.0f / 600.0f);
+        Render render = new(window, camera);
+        camera.CameraChanged.Invoke(); // обновляем массив вершин в Render
+
+        window.Resized += (object? sender, SFML.Window.SizeEventArgs e) => camera.AspectRatio = window.Size.X / (float)window.Size.Y;
+        window.Closed += (object? sender, EventArgs e) => window.Close();
+
+        while (window.IsOpen)
         {
-            Console.WriteLine("Press ESC key to close window");
-            var window = new SimpleWindow();
-            window.Run();
-
-            Console.WriteLine("All done");
-        }
-    }
-
-    internal class SimpleWindow
-    {
-        public void Run()
-        {
-            var mode = new SFML.Window.VideoMode(800, 600);
-            var window = new SFML.Graphics.RenderWindow(mode, "SFML works!");
-            window.KeyPressed += Window_KeyPressed;
-
-            var circle = new SFML.Graphics.CircleShape(100f)
-            {
-                FillColor = SFML.Graphics.Color.Blue
-            };
-
-            // Start the game loop
-            while (window.IsOpen)
-            {
-                // Process events
-                window.DispatchEvents();
-                window.Draw(circle);
-
-                // Finally, display the rendered frame on screen
-                window.Display();
-            }
-        }
-
-        /// <summary>
-        /// Function called when a key is pressed
-        /// </summary>
-        private void Window_KeyPressed(object sender, SFML.Window.KeyEventArgs e)
-        {
-            var window = (SFML.Window.Window)sender;
-            if (e.Code == SFML.Window.Keyboard.Key.Escape)
-            {
-                window.Close();
-            }
+            window.DispatchEvents();
+            window.Clear(new(30, 30, 30));
+            
+            render.DrawGrid();
+            
+            window.Display();
         }
     }
 }
