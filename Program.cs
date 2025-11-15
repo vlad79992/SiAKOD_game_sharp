@@ -5,11 +5,11 @@ internal static class Program
 {
     private static void Main()
     {
-        var mode = new SFML.Window.VideoMode(800, 600);
+        var mode = new SFML.Window.VideoMode(600, 600);
         var window = new SFML.Graphics.RenderWindow(mode, "SIAKOD game");
         window.SetFramerateLimit(60);
         
-        Camera camera = new(scale: 20, aspectRatio: 800.0f / 600.0f);
+        Camera camera = new(scale: 20, aspectRatio: 1f);
         Render render = new(window, camera);
         camera.CameraChanged.Invoke(); // обновляем массив вершин в Render
 

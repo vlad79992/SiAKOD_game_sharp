@@ -24,7 +24,7 @@ internal class Render
     }
     private void UpdateVA()
     {
-        float pointSizeX = (camera.Scale / 1) * ((camera.AspectRatio < 1) ? (camera.AspectRatio) : (1));
+        float pointSizeX = (camera.Scale / 1) / ((camera.AspectRatio < 1) ? (camera.AspectRatio) : (1));
         float pointSizeY = (camera.Scale / 1) * ((camera.AspectRatio > 1) ? (camera.AspectRatio) : (1));
 
         var gridPositions = camera.VisiblePoints.ToArray();
@@ -37,8 +37,6 @@ internal class Render
         {
             float posX = (gridPositions[i].x * camera.Scale * 2 + camera.Scale / 2) / ((camera.AspectRatio < 1) ? (camera.AspectRatio) : (1));
             float posY = (gridPositions[i].y * camera.Scale * 2 + camera.Scale / 2) * ((camera.AspectRatio > 1) ? (camera.AspectRatio) : (1));
-
-
 
             va[i * 6 + 0] = new Vertex(new Vector2f(posX, posY), color);
             va[i * 6 + 1] = new Vertex(new Vector2f(posX + pointSizeX, posY), color);
