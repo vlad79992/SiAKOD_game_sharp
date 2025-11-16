@@ -17,7 +17,7 @@ internal class Camera
         this.aspectRatio = aspectRatio;
         this.scale = scale;
     }
-    public (double, double) Position 
+    public (double x, double y) Position 
     { 
         get => position;
         set
@@ -73,15 +73,19 @@ internal class Camera
                 width = Scale * AspectRatio;
             }
 
-            double left = Position.Item1;
-            double right = Position.Item1 + width;
-            double bottom = Position.Item2;
-            double top = Position.Item2 + height;
+            int pointsAlongLongerSide = (int)Math.Ceiling(Scale);
+            int pointsAlongShorterSide = (int)Math.Ceiling(Scale / aspectRatio);
 
-            int xMin = (int)Math.Ceiling(left);
-            int xMax = (int)Math.Floor(right);
-            int yMin = (int)Math.Ceiling(bottom);
-            int yMax = (int)Math.Floor(top);
+            int centerX = (int)Math.Round(position.Item1);
+            int centerY = (int)Math.Round(position.Item2);
+
+            int halfX = pointsAlongLongerSide / 2;
+            int halfY = pointsAlongShorterSide / 2;
+
+            int xMin = centerX - halfX;
+            int xMax = centerX + halfX;
+            int yMin = centerY - halfY;
+            int yMax = centerY + halfY;
 
             for (int y = yMin; y <= yMax; y++)
             {
