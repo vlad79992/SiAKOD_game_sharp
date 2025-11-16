@@ -1,5 +1,8 @@
-﻿using System;
-using SFML;
+﻿using SFML;
+using SFML.System;
+using SFML.Window;
+using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 internal static class Program
 {
@@ -9,7 +12,7 @@ internal static class Program
         var window = new SFML.Graphics.RenderWindow(mode, "SIAKOD game");
         window.SetFramerateLimit(60);
         
-        Camera camera = new(scale: 20, aspectRatio: 1f);
+        Camera camera = new(scale: 2.25f, aspectRatio: 1f);
         Render render = new(window, camera);
         Controls controls = new(window, camera);
         camera.CameraChanged.Invoke(); // обновляем массив вершин в Render
@@ -21,6 +24,39 @@ internal static class Program
             window.SetView(new SFML.Graphics.View(visibleArea));
         };
 
+        // пусть пока побудет здесь
+        var drawSelection = () =>
+        {
+            var mousePos = Mouse.GetPosition(window);
+            var worldCoords = camera.ScreenToWorld(mousePos.X, mousePos.Y, window.Size.X, window.Size.Y);
+        
+            double distX = Math.Abs(worldCoords.X - Math.Round(worldCoords.X));
+            double distY = Math.Abs(worldCoords.Y - Math.Round(worldCoords.Y));
+
+            long lowerX = (long)Math.Floor(worldCoords.X);
+            long upperX = (long)Math.Ceiling(worldCoords.X);
+
+            long lowerY = (long)Math.Floor(worldCoords.Y);
+            long upperY = (long)Math.Ceiling(worldCoords.Y);
+
+            if (distX < distY && distX < 0.1f)
+            {
+                long nearest = (long)Math.Round(worldCoords.X);
+                render.DrawSelection((nearest, lowerY), (nearest, upperY));
+                //Console.WriteLine($"({nearest}, {lowerY}), ({nearest}, {upperY})");
+                return;
+            }
+        
+            if (distY < distX && distY < 0.1f)
+            {
+                long nearest = (long)Math.Round(worldCoords.Y);
+                render.DrawSelection((lowerX, nearest), (upperX, nearest));
+                //Console.WriteLine($"({lowerX}, {nearest}), ({upperX}, {nearest})");
+                return;
+            }
+        };
+        drawSelection.Invoke();
+
         window.Closed += (object? sender, EventArgs e) => window.Close();
 
         while (window.IsOpen)
@@ -29,8 +65,10 @@ internal static class Program
             window.Clear(new(30, 30, 30));
             
             render.DrawGrid();
-            
+            drawSelection.Invoke();
             window.Display();
         }
+
+        Console.WriteLine("Goodbye World");
     }
 }

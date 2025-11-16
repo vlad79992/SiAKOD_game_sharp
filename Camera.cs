@@ -4,7 +4,7 @@ using System.Text;
 
 internal class Camera
 {
-    private (double, double) position;
+    private (double x, double y) position;
     private float aspectRatio;
     private float scale;
     public Camera(
@@ -17,7 +17,7 @@ internal class Camera
         this.aspectRatio = aspectRatio;
         this.scale = scale;
     }
-    public (double x, double y) Position 
+    public (double X, double Y) Position 
     { 
         get => position;
         set
@@ -57,7 +57,7 @@ internal class Camera
                 CameraChanged.Invoke();
         }
     }
-    public IEnumerable<(int x, int y)> VisiblePoints
+    public IEnumerable<(int X, int Y)> VisiblePoints
     {
         get
         {
@@ -101,6 +101,36 @@ internal class Camera
         if (AspectRatio >= 1)
             return (Scale, Scale / AspectRatio);
         return (Scale * AspectRatio, Scale);
+    }
+    public (double X, double Y) ScreenToWorld(int screenX, int screenY, uint screenWidth, uint screenHeight)
+    {
+        var (worldWidth, worldHeight) = GetVisibleArea();
+
+        double worldLeft = position.x - worldWidth / 2.0;
+        double worldTop = position.y - worldHeight / 2.0;
+
+        double normalizedX = (double)screenX / screenWidth;
+        double normalizedY = (double)screenY / screenHeight;
+
+        double worldX = worldLeft + normalizedX * worldWidth;
+        double worldY = worldTop + normalizedY * worldHeight;
+
+        return (worldX, worldY);
+    }
+    public (int X, int Y) WorldToScreen(double worldX, double worldY, uint screenWidth, uint screenHeight)
+    {
+        var (worldWidth, worldHeight) = GetVisibleArea();
+
+        double worldLeft = position.x - worldWidth / 2.0;
+        double worldTop = position.y - worldHeight / 2.0;
+
+        double normalizedX = (worldX - worldLeft) / worldWidth;
+        double normalizedY = (worldY - worldTop) / worldHeight;
+
+        int screenX = (int)Math.Round(normalizedX * screenWidth);
+        int screenY = (int)Math.Round(normalizedY * screenHeight);
+
+        return (screenX, screenY);
     }
     public Action CameraChanged;
 }
