@@ -12,7 +12,8 @@ internal class Render
     private RenderWindow window;
     private Camera camera;
     private float pointSizeInWorld = 0.1f; // Размер квадрата
-    private VertexArray va = new();
+    private VertexArray gridVA = new(PrimitiveType.Triangles);
+    private VertexArray selectionVA = new(PrimitiveType.Triangles, 48);
     public Render(RenderWindow window, Camera camera)
     {
         this.window = window;
@@ -23,12 +24,11 @@ internal class Render
 
     public void DrawGrid()
     {
-        window.Draw(va);
+        window.Draw(gridVA);
     }
     private void UpdateVA()
     {
         var (windowWidth, windowHeight) = window.Size;
-
         var (visibleWidth, visibleHeight) = camera.GetVisibleArea();
 
         float worldScale = Math.Min(
@@ -37,15 +37,12 @@ internal class Render
         );
 
         float halfSize = (pointSizeInWorld * worldScale) / 2f;
-
         var gridPositions = camera.VisiblePoints.ToArray();
 
         //Console.WriteLine($"{windowWidth} {windowHeight}");
-        //Console.WriteLine($"{scaleX} {scaleY}");
         //Console.WriteLine($"{gridPositions.Length}");
 
-        va.PrimitiveType = PrimitiveType.Triangles;
-        va.Resize((uint)(gridPositions.Length * 6));
+        gridVA.Resize((uint)(gridPositions.Length * 6));
 
         for (uint i = 0; i < gridPositions.Length; i++)
         {
@@ -55,10 +52,8 @@ internal class Render
             float right = screenX + halfSize;
             float top = screenY - halfSize;
             float bottom = screenY + halfSize;
-
             //Console.WriteLine($"{left} {right} {top} {bottom}");
-
-            AddQuadToVA(va, i * 6, left, right, top, bottom, Color.White);
+            AddQuadToVA(gridVA, i * 6, left, right, top, bottom, Color.White);
         }
     }
     public void DrawSelection((long x, long y) point1, (long x, long y) point2)
@@ -80,44 +75,40 @@ internal class Render
 
         if (point1.y == point2.y)
         {
-            VertexArray vertexArray = new(PrimitiveType.Triangles, 48);
-            
-            AddQuadToVA(vertexArray, 0, p1.X + halfSize, p1.X + halfSize + thirdSize, p1.Y - halfSize, p1.Y - halfSize + thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 6, p1.X + halfSize, p1.X + halfSize + thirdSize / 3, p1.Y - halfSize, p1.Y - halfSize + thirdSize, Color.Green);
-        
-            AddQuadToVA(vertexArray, 12, p1.X + halfSize, p1.X + halfSize + thirdSize, p1.Y + halfSize, p1.Y + halfSize - thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 18, p1.X + halfSize, p1.X + halfSize + thirdSize / 3, p1.Y + halfSize, p1.Y + halfSize - thirdSize, Color.Green);
+            AddQuadToVA(selectionVA, 00, p1.X + halfSize, p1.X + halfSize + thirdSize, p1.Y - halfSize, p1.Y - halfSize + thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 06, p1.X + halfSize, p1.X + halfSize + thirdSize / 2, p1.Y - halfSize, p1.Y - halfSize + thirdSize, Color.Green);
 
-            AddQuadToVA(vertexArray, 24, p2.X - halfSize, p2.X - halfSize - thirdSize, p2.Y - halfSize, p2.Y - halfSize + thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 30, p2.X - halfSize, p2.X - halfSize - thirdSize / 3, p2.Y - halfSize, p2.Y - halfSize + thirdSize, Color.Green);
+            AddQuadToVA(selectionVA, 12, p1.X + halfSize, p1.X + halfSize + thirdSize, p1.Y + halfSize, p1.Y + halfSize - thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 18, p1.X + halfSize, p1.X + halfSize + thirdSize / 2, p1.Y + halfSize, p1.Y + halfSize - thirdSize, Color.Green);
 
-            AddQuadToVA(vertexArray, 36, p2.X - halfSize, p2.X - halfSize - thirdSize, p2.Y + halfSize, p2.Y + halfSize - thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 42, p2.X - halfSize, p2.X - halfSize - thirdSize / 3, p2.Y + halfSize, p2.Y + halfSize - thirdSize, Color.Green);
+            AddQuadToVA(selectionVA, 24, p2.X - halfSize, p2.X - halfSize - thirdSize, p2.Y - halfSize, p2.Y - halfSize + thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 30, p2.X - halfSize, p2.X - halfSize - thirdSize / 2, p2.Y - halfSize, p2.Y - halfSize + thirdSize, Color.Green);
 
-            window.Draw(vertexArray);
+            AddQuadToVA(selectionVA, 36, p2.X - halfSize, p2.X - halfSize - thirdSize, p2.Y + halfSize, p2.Y + halfSize - thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 42, p2.X - halfSize, p2.X - halfSize - thirdSize / 2, p2.Y + halfSize, p2.Y + halfSize - thirdSize, Color.Green);
+
+            window.Draw(selectionVA);
             return;
         }
         if (point1.x == point2.x)
         {
-            VertexArray vertexArray = new(PrimitiveType.Triangles, 48);
+            AddQuadToVA(selectionVA, 00, p1.X - halfSize, p1.X - halfSize + thirdSize, p1.Y + halfSize, p1.Y + halfSize + thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 06, p1.X - halfSize, p1.X - halfSize + thirdSize / 2, p1.Y + halfSize, p1.Y + halfSize + thirdSize, Color.Green);
 
-            AddQuadToVA(vertexArray, 0, p1.X - halfSize, p1.X - halfSize + thirdSize, p1.Y + halfSize, p1.Y + halfSize + thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 6, p1.X - halfSize, p1.X - halfSize + thirdSize / 3, p1.Y + halfSize, p1.Y + halfSize + thirdSize, Color.Green);
+            AddQuadToVA(selectionVA, 12, p1.X + halfSize, p1.X + halfSize - thirdSize, p1.Y + halfSize, p1.Y + halfSize + thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 18, p1.X + halfSize, p1.X + halfSize - thirdSize / 2, p1.Y + halfSize, p1.Y + halfSize + thirdSize, Color.Green);
 
-            AddQuadToVA(vertexArray, 12, p1.X + halfSize, p1.X + halfSize - thirdSize, p1.Y + halfSize, p1.Y + halfSize + thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 18, p1.X + halfSize, p1.X + halfSize - thirdSize / 3, p1.Y + halfSize, p1.Y + halfSize + thirdSize, Color.Green);
+            AddQuadToVA(selectionVA, 24, p2.X + halfSize, p2.X + halfSize - thirdSize, p2.Y - halfSize, p2.Y - halfSize - thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 30, p2.X + halfSize, p2.X + halfSize - thirdSize / 2, p2.Y - halfSize, p2.Y - halfSize - thirdSize, Color.Green);
 
-            AddQuadToVA(vertexArray, 24, p2.X + halfSize, p2.X + halfSize - thirdSize, p2.Y - halfSize, p2.Y - halfSize - thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 30, p2.X + halfSize, p2.X + halfSize - thirdSize / 3, p2.Y - halfSize, p2.Y - halfSize - thirdSize, Color.Green);
+            AddQuadToVA(selectionVA, 36, p2.X - halfSize, p2.X - halfSize + thirdSize, p2.Y - halfSize, p2.Y - halfSize - thirdSize / 2, Color.Green);
+            AddQuadToVA(selectionVA, 42, p2.X - halfSize, p2.X - halfSize + thirdSize / 2, p2.Y - halfSize, p2.Y - halfSize - thirdSize, Color.Green);
 
-            AddQuadToVA(vertexArray, 36, p2.X - halfSize, p2.X - halfSize + thirdSize, p2.Y - halfSize, p2.Y - halfSize - thirdSize / 3, Color.Green);
-            AddQuadToVA(vertexArray, 42, p2.X - halfSize, p2.X - halfSize + thirdSize / 3, p2.Y - halfSize, p2.Y - halfSize - thirdSize, Color.Green);
-
-            window.Draw(vertexArray);
+            window.Draw(selectionVA);
             return;
         }
     }
-    private void AddQuadToVA(VertexArray vertexArray, uint begin, 
+    private static void AddQuadToVA(VertexArray vertexArray, uint begin, 
         float left, float right, float top, float bottom, 
         SFML.Graphics.Color color = default)
     {
