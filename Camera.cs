@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SFML.System;
 
 internal class Camera
 {
@@ -132,5 +133,7 @@ internal class Camera
 
         return (screenX, screenY);
     }
+
+
     public Action CameraChanged;
 }

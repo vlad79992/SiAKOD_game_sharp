@@ -1,6 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.Graphics.Glsl;
 using SFML.System;
+using SFML.Window;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,6 +15,7 @@ internal class Render
     private float pointSizeInWorld = 0.1f; // Размер квадрата
     private VertexArray gridVA = new(PrimitiveType.Triangles);
     private VertexArray selectionVA = new(PrimitiveType.Triangles, 48);
+    private VertexArray linesVA = new(PrimitiveType.Triangles);
     public Render(RenderWindow window, Camera camera)
     {
         this.window = window;
@@ -108,6 +110,14 @@ internal class Render
             return;
         }
     }
+
+    public void DrawLine()
+    {   
+        //List<Vector2f> points = camera.GetVisibleArea()
+        //if (Mouse.GetPosition().X  )
+        Mouse.IsButtonPressed(Mouse.Button.Left);
+    }
+
     private static void AddQuadToVA(VertexArray vertexArray, uint begin, 
         float left, float right, float top, float bottom, 
         SFML.Graphics.Color color = default)
