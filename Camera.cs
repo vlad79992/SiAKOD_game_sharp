@@ -44,7 +44,6 @@ internal class Camera
                 CameraChanged.Invoke();
         }
     }
-    //длина самой длинной стороны окна
     public float Scale 
     { 
         get => scale;
@@ -133,7 +132,6 @@ internal class Camera
 
         return (screenX, screenY);
     }
-
 
     public Action CameraChanged;
 }

@@ -6,6 +6,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 internal static class Program
 {
+    private static GameLogic gameLogic;
+    
     private static void Main()
     {
         var mode = new SFML.Window.VideoMode(600, 600);
@@ -15,7 +17,9 @@ internal static class Program
         Camera camera = new(scale: 2.25f, aspectRatio: 1f);
         Render render = new(window, camera);
         Controls controls = new(window, camera);
-        camera.CameraChanged.Invoke(); // обновляем массив вершин в Render
+        gameLogic = new GameLogic(window, camera, controls, render, vsComputer: true);
+        
+        camera.CameraChanged.Invoke();
 
         window.Resized += (object? sender, SFML.Window.SizeEventArgs e) =>
         {
@@ -24,7 +28,16 @@ internal static class Program
             window.SetView(new SFML.Graphics.View(visibleArea));
         };
 
-        // пусть пока побудет здесь
+        window.KeyPressed += (object? sender, SFML.Window.KeyEventArgs e) =>
+        {
+            if (e.Code == SFML.Window.Keyboard.Key.C)
+            {
+                bool currentMode = !gameLogic.GetVsComputer();
+                gameLogic.SetVsComputer(currentMode);
+                Console.WriteLine($"Mode changed: {(currentMode ? "VS Computer" : "Two Players")}");
+            }
+        };
+
         var drawSelection = () =>
         {
             var mousePos = Mouse.GetPosition(window);
@@ -43,7 +56,6 @@ internal static class Program
             {
                 long nearest = (long)Math.Round(worldCoords.X);
                 render.DrawSelection((nearest, lowerY), (nearest, upperY));
-                //Console.WriteLine($"({nearest}, {lowerY}), ({nearest}, {upperY})");
                 return;
             }
         
@@ -51,7 +63,6 @@ internal static class Program
             {
                 long nearest = (long)Math.Round(worldCoords.Y);
                 render.DrawSelection((lowerX, nearest), (upperX, nearest));
-                //Console.WriteLine($"({lowerX}, {nearest}), ({upperX}, {nearest})");
                 return;
             }
         };
@@ -65,8 +76,15 @@ internal static class Program
             window.Clear(new(30, 30, 30));
             
             render.DrawGrid();
+            render.DrawLines();
             drawSelection.Invoke();
             window.Display();
+            
+            if (gameLogic.CheckForBlueWin())
+            {
+                Console.WriteLine("BLUE WINS");
+                window.Close();
+            }
         }
 
         Console.WriteLine("Goodbye World");

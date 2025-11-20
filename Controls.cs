@@ -10,32 +10,12 @@ internal class Controls
     private RenderWindow window;
     private Camera camera;
 
-    //пока что так, но надо будет исправить
     public Controls(RenderWindow window, Camera camera)
     {
         this.window = window;
         this.camera = camera;
         window.KeyPressed += ZoomCamera;
         window.KeyPressed += MoveCamera;
-        window.MouseButtonPressed += (object? sender, SFML.Window.MouseButtonEventArgs e) =>
-        {
-            Console.WriteLine($"Screen {e.X} {e.Y}");
-            var worldCoords = GetWorldCoords((e.X, e.Y), window.Size);
-            Console.WriteLine($"World {worldCoords.X} {worldCoords.Y}");
-            var screenCoords = GetScreenCoords(worldCoords.X, worldCoords.Y, window.Size.X, window.Size.Y);
-            Console.WriteLine($"Screen calculated {screenCoords.X} {screenCoords.Y}");
-            (double X, double Y) dist = getCloseCoordDistance(worldCoords);
-            double distY = Math.Abs(worldCoords.Y - Math.Round(worldCoords.Y));
-
-            long lowerX = (long)Math.Floor(worldCoords.X);
-            long upperX = (long)Math.Ceiling(worldCoords.X);
-
-            long lowerY = (long)Math.Floor(worldCoords.Y);
-            long upperY = (long)Math.Ceiling(worldCoords.Y);
-            Console.WriteLine($"dist {dist.X} {dist.Y}");
-            Console.WriteLine($"lowerX {lowerX} upperX {upperX} nearest {(long)Math.Round(worldCoords.X)}");
-            Console.WriteLine($"lowerY {lowerY} upperY {upperY} nearest {(long)Math.Round(worldCoords.Y)}");
-        };
     }
 
     public (double X, double Y) GetWorldCoords((int X, int Y) e, Vector2u windowSize)

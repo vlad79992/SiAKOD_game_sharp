@@ -12,15 +12,17 @@ internal class Render
 {
     private RenderWindow window;
     private Camera camera;
-    private float pointSizeInWorld = 0.1f; // Размер квадрата
+    private float pointSizeInWorld = 0.1f;
     private VertexArray gridVA = new(PrimitiveType.Triangles);
     private VertexArray selectionVA = new(PrimitiveType.Triangles, 48);
     private VertexArray linesVA = new(PrimitiveType.Triangles);
+    
+    private List<(Line line, bool isBlue)> linesToDraw = new List<(Line, bool)>();
+    
     public Render(RenderWindow window, Camera camera)
     {
         this.window = window;
         this.camera = camera;
-        // обновляем вершины только при изменении камеры, чтобы не заниматься этим каждый кадр
         camera.CameraChanged += () => UpdateVA();
     }
 
@@ -28,6 +30,88 @@ internal class Render
     {
         window.Draw(gridVA);
     }
+    
+    public void DrawLines()
+    {
+        window.Draw(linesVA);
+    }
+    
+    public void AddLine(Line line, bool isBlue)
+    {
+        linesToDraw.Add((line, isBlue));
+        UpdateLinesVA();
+    }
+    
+    private void UpdateLinesVA()
+    {
+        var (windowWidth, windowHeight) = window.Size;
+        var (visibleWidth, visibleHeight) = camera.GetVisibleArea();
+
+        float worldScale = Math.Min(
+            (float)windowWidth / (float)visibleWidth,
+            (float)windowHeight / (float)visibleHeight
+        );
+        
+        float pointSize = (pointSizeInWorld * worldScale);
+        float halfPointSize = pointSize / 2f;
+        
+        linesVA.Resize((uint)(linesToDraw.Count * 6));
+        
+        for (int i = 0; i < linesToDraw.Count; i++)
+        {
+            var (line, isBlue) = linesToDraw[i];
+            var color = isBlue ? Color.Blue : Color.Red;
+            
+            var center1 = camera.WorldToScreen(line.Point1.Item1, line.Point1.Item2, windowWidth, windowHeight);
+            var center2 = camera.WorldToScreen(line.Point2.Item1, line.Point2.Item2, windowWidth, windowHeight);
+            
+            if (line.Point1.Item1 == line.Point2.Item1)
+            {
+                float x = center1.X;
+                
+                float topPointY, bottomPointY;
+                
+                if (line.Point1.Item2 < line.Point2.Item2)
+                {
+                    topPointY = center1.Y + halfPointSize;
+                    bottomPointY = center2.Y - halfPointSize;
+                }
+                else
+                {
+                    topPointY = center2.Y + halfPointSize;
+                    bottomPointY = center1.Y - halfPointSize;
+                }
+                
+                float left = x - halfPointSize;
+                float right = x + halfPointSize;
+                
+                AddQuadToVA(linesVA, (uint)(i * 6), left, right, topPointY, bottomPointY, color);
+            }
+            else
+            {
+                float y = center1.Y;
+                
+                float leftPointX, rightPointX;
+                
+                if (line.Point1.Item1 < line.Point2.Item1)
+                {
+                    leftPointX = center1.X + halfPointSize;
+                    rightPointX = center2.X - halfPointSize;
+                }
+                else
+                {
+                    leftPointX = center2.X + halfPointSize;
+                    rightPointX = center1.X - halfPointSize;
+                }
+                
+                float top = y - halfPointSize;
+                float bottom = y + halfPointSize;
+                
+                AddQuadToVA(linesVA, (uint)(i * 6), leftPointX, rightPointX, top, bottom, color);
+            }
+        }
+    }
+    
     private void UpdateVA()
     {
         var (windowWidth, windowHeight) = window.Size;
@@ -41,9 +125,6 @@ internal class Render
         float halfSize = (pointSizeInWorld * worldScale) / 2f;
         var gridPositions = camera.VisiblePoints.ToArray();
 
-        //Console.WriteLine($"{windowWidth} {windowHeight}");
-        //Console.WriteLine($"{gridPositions.Length}");
-
         gridVA.Resize((uint)(gridPositions.Length * 6));
 
         for (uint i = 0; i < gridPositions.Length; i++)
@@ -54,10 +135,12 @@ internal class Render
             float right = screenX + halfSize;
             float top = screenY - halfSize;
             float bottom = screenY + halfSize;
-            //Console.WriteLine($"{left} {right} {top} {bottom}");
             AddQuadToVA(gridVA, i * 6, left, right, top, bottom, Color.White);
         }
+        
+        UpdateLinesVA();
     }
+    
     public void DrawSelection((long x, long y) point1, (long x, long y) point2)
     {
         var (windowWidth, windowHeight) = window.Size;
@@ -73,7 +156,6 @@ internal class Render
 
         var p1 = camera.WorldToScreen(point1.x, point1.y, windowWidth, windowHeight);
         var p2 = camera.WorldToScreen(point2.x, point2.y, windowWidth, windowHeight);
-
 
         if (point1.y == point2.y)
         {
@@ -109,13 +191,6 @@ internal class Render
             window.Draw(selectionVA);
             return;
         }
-    }
-
-    public void DrawLine()
-    {   
-        //List<Vector2f> points = camera.GetVisibleArea()
-        //if (Mouse.GetPosition().X  )
-        Mouse.IsButtonPressed(Mouse.Button.Left);
     }
 
     private static void AddQuadToVA(VertexArray vertexArray, uint begin, 
