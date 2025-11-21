@@ -1,29 +1,25 @@
 ﻿using SFML.Graphics;
-using SFML.Graphics.Glsl;
 using SFML.System;
 using SFML.Window;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
 using Color = SFML.Graphics.Color;
 
 internal class Render
 {
     private RenderWindow window;
-    private Camera camera;
+    private readonly Camera camera;
     private float pointSizeInWorld = 0.1f;
     private VertexArray gridVA = new(PrimitiveType.Triangles);
     private VertexArray selectionVA = new(PrimitiveType.Triangles, 48);
     private VertexArray linesVA = new(PrimitiveType.Triangles);
     
-    private List<(Line line, bool isBlue)> linesToDraw = new List<(Line, bool)>();
-    
+    private List<(Line line, bool blue)> linesToDraw = new List<(Line, bool)>();
+
     public Render(RenderWindow window, Camera camera)
     {
         this.window = window;
         this.camera = camera;
-        camera.CameraChanged += () => UpdateVA();
+        camera.CameraChanged += () => UpdateGridVA();
+        camera.CameraChanged += () => UpdateLinesVA();
     }
 
     public void DrawGrid()
@@ -35,13 +31,11 @@ internal class Render
     {
         window.Draw(linesVA);
     }
-    
-    public void AddLine(Line line, bool isBlue)
+    public void AddLine(Line line, bool blue)
     {
-        linesToDraw.Add((line, isBlue));
+        linesToDraw.Add((line, blue));
         UpdateLinesVA();
     }
-    
     private void UpdateLinesVA()
     {
         var (windowWidth, windowHeight) = window.Size;
@@ -112,7 +106,7 @@ internal class Render
         }
     }
     
-    private void UpdateVA()
+    private void UpdateGridVA()
     {
         var (windowWidth, windowHeight) = window.Size;
         var (visibleWidth, visibleHeight) = camera.GetVisibleArea();
@@ -137,12 +131,41 @@ internal class Render
             float bottom = screenY + halfSize;
             AddQuadToVA(gridVA, i * 6, left, right, top, bottom, Color.White);
         }
-        
-        UpdateLinesVA();
     }
     
-    public void DrawSelection((long x, long y) point1, (long x, long y) point2)
+    public void DrawSelection()
     {
+        (long x, long y) point1 = default;
+        (long x, long y) point2 = default;
+
+        var mousePos = Mouse.GetPosition(window);
+        var worldCoords = camera.ScreenToWorld(mousePos.X, mousePos.Y, window.Size.X, window.Size.Y);
+
+        double distX = Math.Abs(worldCoords.X - Math.Round(worldCoords.X));
+        double distY = Math.Abs(worldCoords.Y - Math.Round(worldCoords.Y));
+
+        long lowerX = (long)Math.Floor(worldCoords.X);
+        long upperX = (long)Math.Ceiling(worldCoords.X);
+
+        long lowerY = (long)Math.Floor(worldCoords.Y);
+        long upperY = (long)Math.Ceiling(worldCoords.Y);
+
+        if (distX < distY && distX < pointSizeInWorld)
+        {
+            long nearest = (long)Math.Round(worldCoords.X);
+            point1 = (nearest, lowerY);
+            point2 = (nearest, upperY);
+        }
+
+        if (distY < distX && distY < pointSizeInWorld)
+        {
+            long nearest = (long)Math.Round(worldCoords.Y);
+            point1 = (lowerX, nearest);
+            point2 = (upperX, nearest);
+        }
+        if (point1 == default && point2 == default)
+            return;
+
         var (windowWidth, windowHeight) = window.Size;
 
         var (visibleWidth, visibleHeight) = camera.GetVisibleArea();

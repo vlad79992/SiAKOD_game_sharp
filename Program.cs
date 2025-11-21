@@ -1,25 +1,21 @@
 ﻿using SFML;
 using SFML.System;
 using SFML.Window;
-using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 internal static class Program
-{
-    private static GameLogic gameLogic;
-    
+{   
     private static void Main()
     {
         var mode = new SFML.Window.VideoMode(600, 600);
         var window = new SFML.Graphics.RenderWindow(mode, "SIAKOD game");
         window.SetFramerateLimit(60);
-        
+
         Camera camera = new(scale: 2.25f, aspectRatio: 1f);
         Render render = new(window, camera);
         Controls controls = new(window, camera);
-        gameLogic = new GameLogic(window, camera, controls, render, vsComputer: true);
-        
-        camera.CameraChanged.Invoke();
+        GameLogic gameLogic = new GameLogic(window, camera, controls, render, vsComputer: true);
+
+        camera.CameraChanged?.Invoke();
 
         window.Resized += (object? sender, SFML.Window.SizeEventArgs e) =>
         {
@@ -32,61 +28,89 @@ internal static class Program
         {
             if (e.Code == SFML.Window.Keyboard.Key.C)
             {
-                bool currentMode = !gameLogic.GetVsComputer();
-                gameLogic.SetVsComputer(currentMode);
-                Console.WriteLine($"Mode changed: {(currentMode ? "VS Computer" : "Two Players")}");
+                gameLogic.VsComputer = !gameLogic.VsComputer;
+                Console.WriteLine($"Mode changed: {(gameLogic.VsComputer ? "VS Computer" : "Two Players")}");
             }
         };
-
-        var drawSelection = () =>
-        {
-            var mousePos = Mouse.GetPosition(window);
-            var worldCoords = camera.ScreenToWorld(mousePos.X, mousePos.Y, window.Size.X, window.Size.Y);
-        
-            double distX = Math.Abs(worldCoords.X - Math.Round(worldCoords.X));
-            double distY = Math.Abs(worldCoords.Y - Math.Round(worldCoords.Y));
-
-            long lowerX = (long)Math.Floor(worldCoords.X);
-            long upperX = (long)Math.Ceiling(worldCoords.X);
-
-            long lowerY = (long)Math.Floor(worldCoords.Y);
-            long upperY = (long)Math.Ceiling(worldCoords.Y);
-
-            if (distX < distY && distX < 0.1f)
-            {
-                long nearest = (long)Math.Round(worldCoords.X);
-                render.DrawSelection((nearest, lowerY), (nearest, upperY));
-                return;
-            }
-        
-            if (distY < distX && distY < 0.1f)
-            {
-                long nearest = (long)Math.Round(worldCoords.Y);
-                render.DrawSelection((lowerX, nearest), (upperX, nearest));
-                return;
-            }
-        };
-        drawSelection.Invoke();
 
         window.Closed += (object? sender, EventArgs e) => window.Close();
+
+        ShowTutorial(window);
+        GameRenderLoop(window, render, gameLogic);
+        ShowEnding(window);
+
+        Console.WriteLine("Goodbye World");
+    }
+
+    private static void GameRenderLoop(SFML.Graphics.RenderWindow window, Render render, GameLogic gameLogic)
+    {
+        SFML.Graphics.Font font = new("Monocraft-nerd-fonts-patched.ttc");
+
+        SFML.Graphics.Text text = new("ЧЛЕЕЕН", font, 256);
+        text.FillColor = SFML.Graphics.Color.White;
+        text.Position = new Vector2f(100, 100);
+
+        while (window.IsOpen && !gameLogic.BlueWins)
+        {
+            window.DispatchEvents();
+            window.Clear(new(30, 30, 30));
+
+            render.DrawGrid();
+            render.DrawLines();
+            render.DrawSelection();
+            window.Draw(text);
+            window.Display();
+        }
+    }
+    private static void ShowEnding(SFML.Graphics.RenderWindow window)
+    {
+        SFML.Graphics.Font font = new("Monocraft-nerd-fonts-patched.ttc");
+
+        SFML.Graphics.Text text = new("ГОЛУБЫЕ ПОБЕДИЛИ", font, 100);
+        text.FillColor = SFML.Graphics.Color.Blue;
+        text.Position = new Vector2f(100, 100);
 
         while (window.IsOpen)
         {
             window.DispatchEvents();
             window.Clear(new(30, 30, 30));
-            
-            render.DrawGrid();
-            render.DrawLines();
-            drawSelection.Invoke();
+            window.Draw(text);
             window.Display();
-            
-            if (gameLogic.CheckForBlueWin())
+            foreach (Keyboard.Key key in Enum.GetValues(typeof(Keyboard.Key)))
             {
-                Console.WriteLine("BLUE WINS");
-                window.Close();
+                if (key != Keyboard.Key.Unknown && Keyboard.IsKeyPressed(key))
+                {
+                    break;
+                }
             }
         }
+    }
+    private static void ShowTutorial(SFML.Graphics.RenderWindow window)
+    {
+        SFML.Graphics.Font font = new("Monocraft-nerd-fonts-patched.ttc");
 
-        Console.WriteLine("Goodbye World");
+        SFML.Graphics.Text text = new(
+            "Нажмите клавишу C,\nчтобы переместиться в Қазақстан,\n"
+            + "а также сменить режим игры.\n"
+            + "\tДля начала нажмите любую кнопку.",
+            font,
+            60);
+        text.FillColor = SFML.Graphics.Color.White;
+        text.Position = new Vector2f(100, 100);
+
+        while (window.IsOpen)
+        {
+            window.DispatchEvents();
+            window.Clear(new(30, 30, 30));
+            window.Draw(text);
+            window.Display();
+            foreach (Keyboard.Key key in Enum.GetValues(typeof(Keyboard.Key)))
+            {
+                if (key != Keyboard.Key.Unknown && Keyboard.IsKeyPressed(key))
+                {
+                    return;
+                }
+            }
+        }
     }
 }

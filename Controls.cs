@@ -1,14 +1,10 @@
 ﻿using SFML.Graphics;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 internal class Controls
 {
-    private RenderWindow window;
-    private Camera camera;
+    private readonly RenderWindow window;
+    private readonly Camera camera;
 
     public Controls(RenderWindow window, Camera camera)
     {
@@ -37,13 +33,19 @@ internal class Controls
     {
         if (e.Code == SFML.Window.Keyboard.Key.Equal)
         {
-            camera.Scale -= 0.5f;
-            Thread.Sleep(5);
+            if (camera.Scale > 1)
+            {
+                camera.Scale -= 0.5f;
+                Thread.Sleep(5);
+            }
         }
         if (e.Code == SFML.Window.Keyboard.Key.Hyphen)
         {
-            camera.Scale += 0.5f;
-            Thread.Sleep(5);
+            if (camera.Scale < 100)
+            {
+                camera.Scale += 0.5f;
+                Thread.Sleep(5);
+            }
         }
     }
 

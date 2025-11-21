@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SFML.System;
-
-internal class Camera
+﻿internal class Camera
 {
     private (double x, double y) position;
     private float aspectRatio;
     private float scale;
+    public Action? CameraChanged;
     public Camera(
             (double, double) position = default((double, double)),
             float aspectRatio = 1.0f,
@@ -28,7 +24,7 @@ internal class Camera
                 cameraChanged = true;
             position = value;
             if (cameraChanged)
-                CameraChanged.Invoke();
+                CameraChanged?.Invoke();
         }
     }
     public float AspectRatio 
@@ -41,7 +37,7 @@ internal class Camera
                 cameraChanged = true;
             aspectRatio = value;
             if (cameraChanged)
-                CameraChanged.Invoke();
+                CameraChanged?.Invoke();
         }
     }
     public float Scale 
@@ -54,7 +50,7 @@ internal class Camera
                 cameraChanged = true;
             scale = value;
             if (cameraChanged)
-                CameraChanged.Invoke();
+                CameraChanged?.Invoke();
         }
     }
     public IEnumerable<(int X, int Y)> VisiblePoints
@@ -132,6 +128,4 @@ internal class Camera
 
         return (screenX, screenY);
     }
-
-    public Action CameraChanged;
 }
