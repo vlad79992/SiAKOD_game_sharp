@@ -25,6 +25,8 @@ internal class GameLogic
         }
     }
     public bool IsBlueTurn { get => isBlueTurn; }
+    public int BlueLinesCount { get => lines.Count(l => l.Value); }
+    public int RedLinesCount { get => lines.Count(l => !l.Value); }
 
     public GameLogic(RenderWindow window, Camera camera, Controls controls, Render render, bool vsComputer = true)
     {
@@ -46,7 +48,7 @@ internal class GameLogic
                 return;
 
             // В режиме двух игроков ходят по очереди оба
-            var worldCoords = controls.GetWorldCoords((e.X, e.Y), window.Size);
+            var worldCoords = camera.ScreenToWorld(e.X, e.Y, window.Size.X, window.Size.Y);
             if (TryAddLine(worldCoords, isBlueTurn))
             {
                 // Если играем против компьютера и синий поставил линию
@@ -130,7 +132,7 @@ internal class GameLogic
 
         List<Line> possibleMoves = new List<Line>();
 
-        if (lastBlueLine.Value.Point1.Item1 == lastBlueLine.Value.Point2.Item1)
+        if (lastBlueLine.Value.Point1.X == lastBlueLine.Value.Point2.X)
         {
             possibleMoves.AddRange(GetHorizontalBlockingLines(lastBlueLine.Value));
         }
@@ -163,10 +165,10 @@ internal class GameLogic
 
     private Line? FindTopLeftBlockingMove(List<Line> freeMoves, Line lastBlueLine)
     {
-        long blueX1 = lastBlueLine.Point1.Item1;
-        long blueY1 = lastBlueLine.Point1.Item2;
-        long blueX2 = lastBlueLine.Point2.Item1;
-        long blueY2 = lastBlueLine.Point2.Item2;
+        long blueX1 = lastBlueLine.Point1.X;
+        long blueY1 = lastBlueLine.Point1.Y;
+        long blueX2 = lastBlueLine.Point2.X;
+        long blueY2 = lastBlueLine.Point2.Y;
 
         if (blueX1 == blueX2)
         {
@@ -174,14 +176,14 @@ internal class GameLogic
             long topY = Math.Min(blueY1, blueY2);
 
             var topLeftBlock = freeMoves.FirstOrDefault(line =>
-                line.Point1.Item1 == x - 1 && line.Point1.Item2 == topY &&
-                line.Point2.Item1 == x && line.Point2.Item2 == topY);
+                line.Point1.X == x - 1 && line.Point1.Y == topY &&
+                line.Point2.X == x && line.Point2.Y == topY);
 
             if (topLeftBlock.Point1 != (0, 0) || topLeftBlock.Point2 != (0, 0))
                 return topLeftBlock;
 
             var topBlocks = freeMoves.Where(line =>
-                (line.Point1.Item2 == topY || line.Point2.Item2 == topY)).ToList();
+                (line.Point1.Y == topY || line.Point2.Y == topY)).ToList();
 
             if (topBlocks.Count > 0)
                 return topBlocks[0];
@@ -192,14 +194,14 @@ internal class GameLogic
             long leftX = Math.Min(blueX1, blueX2);
 
             var topLeftBlock = freeMoves.FirstOrDefault(line =>
-                line.Point1.Item1 == leftX && line.Point1.Item2 == y - 1 &&
-                line.Point2.Item1 == leftX && line.Point2.Item2 == y);
+                line.Point1.X == leftX && line.Point1.Y == y - 1 &&
+                line.Point2.X == leftX && line.Point2.Y == y);
 
             if (topLeftBlock.Point1 != (0, 0) || topLeftBlock.Point2 != (0, 0))
                 return topLeftBlock;
 
             var leftBlocks = freeMoves.Where(line =>
-                (line.Point1.Item1 == leftX || line.Point2.Item1 == leftX)).ToList();
+                (line.Point1.X == leftX || line.Point2.X == leftX)).ToList();
 
             if (leftBlocks.Count > 0)
                 return leftBlocks[0];
@@ -211,9 +213,9 @@ internal class GameLogic
     private List<Line> GetHorizontalBlockingLines(Line verticalBlueLine)
     {
         var moves = new List<Line>();
-        long x = verticalBlueLine.Point1.Item1;
-        long y1 = verticalBlueLine.Point1.Item2;
-        long y2 = verticalBlueLine.Point2.Item2;
+        long x = verticalBlueLine.Point1.X;
+        long y1 = verticalBlueLine.Point1.Y;
+        long y2 = verticalBlueLine.Point2.Y;
 
         long topY = Math.Min(y1, y2);
         long bottomY = Math.Max(y1, y2);
@@ -229,9 +231,9 @@ internal class GameLogic
     private List<Line> GetVerticalBlockingLines(Line horizontalBlueLine)
     {
         var moves = new List<Line>();
-        long y = horizontalBlueLine.Point1.Item2;
-        long x1 = horizontalBlueLine.Point1.Item1;
-        long x2 = horizontalBlueLine.Point2.Item1;
+        long y = horizontalBlueLine.Point1.Y;
+        long x1 = horizontalBlueLine.Point1.X;
+        long x2 = horizontalBlueLine.Point2.X;
 
         long leftX = Math.Min(x1, x2);
         long rightX = Math.Max(x1, x2);
@@ -262,11 +264,11 @@ internal class GameLogic
 
     private Line? FindPotentialClosure(Line blueLine)
     {
-        if (blueLine.Point1.Item1 == blueLine.Point2.Item1)
+        if (blueLine.Point1.X == blueLine.Point2.X)
         {
-            long x = blueLine.Point1.Item1;
-            long y1 = blueLine.Point1.Item2;
-            long y2 = blueLine.Point2.Item2;
+            long x = blueLine.Point1.X;
+            long y1 = blueLine.Point1.Y;
+            long y2 = blueLine.Point2.Y;
 
             if (IsBlueLine(new Line((x - 1, y1), (x, y1))) &&
                 IsBlueLine(new Line((x - 1, y2), (x, y2))) &&
@@ -284,9 +286,9 @@ internal class GameLogic
         }
         else
         {
-            long y = blueLine.Point1.Item2;
-            long x1 = blueLine.Point1.Item1;
-            long x2 = blueLine.Point2.Item1;
+            long y = blueLine.Point1.Y;
+            long x1 = blueLine.Point1.X;
+            long x2 = blueLine.Point2.X;
 
             if (IsBlueLine(new Line((x1, y - 1), (x1, y))) &&
                 IsBlueLine(new Line((x2, y - 1), (x2, y))) &&
@@ -313,6 +315,7 @@ internal class GameLogic
 
     private void MakeRandomMove()
     {
+        // наверное,его можно сломать если приблизить на область, где все точки использованы
         var visiblePoints = camera.VisiblePoints.ToArray();
         var random = new Random();
         var possibleMoves = new List<Line>();
@@ -431,7 +434,4 @@ internal class GameLogic
             Console.WriteLine($"{line.Key.Point1} -> {line.Key.Point2} : {(line.Value ? "Blue" : "Red")}");
         }
     }
-
-    public int BlueLinesCount { get => lines.Count(l => l.Value); }
-    public int RedLinesCount { get => lines.Count(l => !l.Value); }
 }

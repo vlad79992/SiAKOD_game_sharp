@@ -1,6 +1,8 @@
 ﻿using SFML;
+using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using Color = SFML.Graphics.Color;
 
 internal static class Program
 {   
@@ -46,8 +48,8 @@ internal static class Program
     {
         SFML.Graphics.Font font = new("Monocraft-nerd-fonts-patched.ttc");
 
-        SFML.Graphics.Text text = new("ЧЛЕЕЕН", font, 256);
-        text.FillColor = SFML.Graphics.Color.White;
+        SFML.Graphics.Text text = new($"{((gameLogic.IsBlueTurn) ? ("ХОД СИНИХ") : ("ХОД КРАСНЫХ"))}", font, 48);
+        text.FillColor = ((gameLogic.IsBlueTurn) ? (Color.Blue) : (Color.Red));
         text.Position = new Vector2f(100, 100);
 
         while (window.IsOpen && !gameLogic.BlueWins)
@@ -66,14 +68,21 @@ internal static class Program
     {
         SFML.Graphics.Font font = new("Monocraft-nerd-fonts-patched.ttc");
 
-        SFML.Graphics.Text text = new("ГОЛУБЫЕ ПОБЕДИЛИ", font, 100);
+        SFML.Graphics.Text text = new("СИНИЕ ПОБЕДИЛИ", font, 100);
         text.FillColor = SFML.Graphics.Color.Blue;
-        text.Position = new Vector2f(100, 100);
+
+        SFML.Graphics.Texture texture = new("WinImage.png");
+        SFML.Graphics.Sprite sprite = new(texture);
+        sprite.Origin = new(sprite.TextureRect.Width / 2, sprite.TextureRect.Height / 2);
 
         while (window.IsOpen)
         {
+            text.Position = new Vector2f((window.Size.X - text.DisplayedString.Length * text.CharacterSize / 2) / 2, 100);
+            sprite.Position = new Vector2f(window.Size.X / 2, window.Size.Y / 2);
+            
             window.DispatchEvents();
             window.Clear(new(30, 30, 30));
+            window.Draw(sprite);
             window.Draw(text);
             window.Display();
             foreach (Keyboard.Key key in Enum.GetValues(typeof(Keyboard.Key)))
@@ -92,6 +101,8 @@ internal static class Program
         SFML.Graphics.Text text = new(
             "Нажмите клавишу C,\nчтобы переместиться в Қазақстан,\n"
             + "а также сменить режим игры.\n"
+            + "Для передвижения камеры используйте стрелки\n"
+            + "или мышь с нажатым Alt\n"
             + "\tДля начала нажмите любую кнопку.",
             font,
             60);

@@ -5,12 +5,12 @@ using Color = SFML.Graphics.Color;
 
 internal class Render
 {
-    private RenderWindow window;
+    private readonly RenderWindow window;
     private readonly Camera camera;
-    private float pointSizeInWorld = 0.1f;
-    private VertexArray gridVA = new(PrimitiveType.Triangles);
-    private VertexArray selectionVA = new(PrimitiveType.Triangles, 48);
-    private VertexArray linesVA = new(PrimitiveType.Triangles);
+    private readonly float pointSizeInWorld = 0.1f;
+    private readonly VertexArray gridVA = new(PrimitiveType.Triangles);
+    private readonly VertexArray selectionVA = new(PrimitiveType.Triangles, 48);
+    private readonly VertexArray linesVA = new(PrimitiveType.Triangles);
     
     private List<(Line line, bool blue)> linesToDraw = new List<(Line, bool)>();
 

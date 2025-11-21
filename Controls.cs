@@ -1,34 +1,41 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
+using static SFML.Window.Keyboard;
 
 internal class Controls
 {
     private readonly RenderWindow window;
     private readonly Camera camera;
-
+    private Vector2i lastMousePos = new();
     public Controls(RenderWindow window, Camera camera)
     {
         this.window = window;
         this.camera = camera;
         window.KeyPressed += ZoomCamera;
         window.KeyPressed += MoveCamera;
+        window.MouseMoved += MoveCameraByMouse;
+        window.MouseWheelScrolled += ZoomCameraByMouse;
     }
 
-    public (double X, double Y) GetWorldCoords((int X, int Y) e, Vector2u windowSize)
+    private void ZoomCameraByMouse(object? sender, MouseWheelScrollEventArgs e)
     {
-        return camera.ScreenToWorld(e.X, e.Y, windowSize.X, windowSize.Y);
+        float scrollSpeed = -0.25f;
+        if (camera.Scale + e.Delta * scrollSpeed > 1 && camera.Scale + e.Delta * scrollSpeed < 100)
+            camera.Scale += e.Delta * scrollSpeed;
     }
 
-    public (double X, double Y) GetScreenCoords(double worldCoordsX, double worldCoordsY, uint windowSizeX, uint windowSizeY)
+    private void MoveCameraByMouse(object? sender, MouseMoveEventArgs e)
     {
-        return camera.WorldToScreen(worldCoordsX, worldCoordsY, windowSizeX, windowSizeY);
+        float scale = 0.1f / camera.Scale;
+        if (Keyboard.IsKeyPressed(Keyboard.Key.LAlt))
+        {
+            Vector2i currentMousePos = new(e.X, e.Y);
+            var delta = currentMousePos - lastMousePos;
+            camera.Position = new(camera.Position.X + delta.X * scale, camera.Position.Y + delta.Y * scale);
+        }
+        lastMousePos = new(e.X, e.Y);
     }
-
-    public (double X, double Y) getCloseCoordDistance((double X, double Y) worldCoords)
-    {
-        return (Math.Abs(worldCoords.X - Math.Round(worldCoords.X)), Math.Abs(worldCoords.Y - Math.Round(worldCoords.Y)));
-    }
-
     private async void ZoomCamera(object? sender, SFML.Window.KeyEventArgs e)
     {
         if (e.Code == SFML.Window.Keyboard.Key.Equal)
@@ -48,8 +55,7 @@ internal class Controls
             }
         }
     }
-
-    private async void MoveCamera(object? sender, SFML.Window.KeyEventArgs e)
+    private void MoveCamera(object? sender, SFML.Window.KeyEventArgs e)
     {
         float vel = 0.1f;
         bool keyPressed = false;

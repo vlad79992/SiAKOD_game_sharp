@@ -2,8 +2,8 @@ using System;
 // вынес line в отдельный файл
 public struct Line : IEquatable<Line>
 {
-    public (long, long) Point1 { get; }
-    public (long, long) Point2 { get; }
+    public (long X, long Y) Point1 { get; }
+    public (long X, long Y) Point2 { get; }
     
     public Line((long, long) point1, (long, long) point2)
     {
