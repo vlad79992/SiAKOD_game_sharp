@@ -91,7 +91,7 @@ internal class GameLogic
             // В режиме двух игроков меняем ход, в режиме против компьютера ход меняется в ComputerMove
             if (!vsComputer)
             {
-                isBlueTurn = !isBlueTurn;
+                isBlueTurn ^= true;
             }
 
             Console.WriteLine($"Line added: {newLine.Value.Point1} -> {newLine.Value.Point2}, Color: {(isBlue ? "Blue" : "Red")}");

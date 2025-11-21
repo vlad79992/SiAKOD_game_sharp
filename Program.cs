@@ -15,7 +15,7 @@ internal static class Program
         Camera camera = new(scale: 2.25f, aspectRatio: 1f);
         Render render = new(window, camera);
         Controls controls = new(window, camera);
-        GameLogic gameLogic = new GameLogic(window, camera, render, vsComputer: true);
+        GameLogic gameLogic = new(window, camera, render, vsComputer: true);
 
         camera.CameraChanged?.Invoke();
 
@@ -30,7 +30,7 @@ internal static class Program
         {
             if (e.Code == SFML.Window.Keyboard.Key.C)
             {
-                gameLogic.VsComputer = !gameLogic.VsComputer;
+                gameLogic.VsComputer ^= true;
                 Console.WriteLine($"Mode changed: {(gameLogic.VsComputer ? "VS Computer" : "Two Players")}");
             }
         };
@@ -48,12 +48,14 @@ internal static class Program
     {
         SFML.Graphics.Font font = new("Monocraft-nerd-fonts-patched.ttc");
 
-        SFML.Graphics.Text text = new($"{((gameLogic.IsBlueTurn) ? ("ХОД СИНИХ") : ("ХОД КРАСНЫХ"))}", font, 48);
-        text.FillColor = ((gameLogic.IsBlueTurn) ? (Color.Blue) : (Color.Red));
+        SFML.Graphics.Text text = new("ХОД СИНИХ", font, 48);
         text.Position = new Vector2f(100, 100);
 
         while (window.IsOpen && !gameLogic.BlueWins)
         {
+            text.DisplayedString = $"{((gameLogic.IsBlueTurn) ? ("ХОД СИНИХ") : ("ХОД КРАСНЫХ"))}";
+            text.FillColor = ((gameLogic.IsBlueTurn) ? (Color.Blue) : (Color.Red));
+
             window.DispatchEvents();
             window.Clear(new(30, 30, 30));
 
