@@ -56,16 +56,16 @@ internal class Render
             var (line, isBlue) = linesToDraw[i];
             var color = isBlue ? Color.Blue : Color.Red;
             
-            var center1 = camera.WorldToScreen(line.Point1.Item1, line.Point1.Item2, windowWidth, windowHeight);
-            var center2 = camera.WorldToScreen(line.Point2.Item1, line.Point2.Item2, windowWidth, windowHeight);
+            var center1 = camera.WorldToScreen(line.Point1.X, line.Point1.Y, windowWidth, windowHeight);
+            var center2 = camera.WorldToScreen(line.Point2.X, line.Point2.Y, windowWidth, windowHeight);
             
-            if (line.Point1.Item1 == line.Point2.Item1)
+            if (line.Point1.X == line.Point2.X)
             {
                 float x = center1.X;
                 
                 float topPointY, bottomPointY;
                 
-                if (line.Point1.Item2 < line.Point2.Item2)
+                if (line.Point1.Y < line.Point2.Y)
                 {
                     topPointY = center1.Y + halfPointSize;
                     bottomPointY = center2.Y - halfPointSize;
@@ -87,7 +87,7 @@ internal class Render
                 
                 float leftPointX, rightPointX;
                 
-                if (line.Point1.Item1 < line.Point2.Item1)
+                if (line.Point1.X < line.Point2.X)
                 {
                     leftPointX = center1.X + halfPointSize;
                     rightPointX = center2.X - halfPointSize;

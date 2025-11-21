@@ -44,14 +44,3 @@ public struct Line : IEquatable<Line>
         return !left.Equals(right);
     }
 }
-
-public static class TupleExtensions
-{
-    public static int CompareTo(this (long, long) tuple1, (long, long) tuple2)
-    {
-        int result = tuple1.Item1.CompareTo(tuple2.Item1);
-        if (result == 0)
-            result = tuple1.Item2.CompareTo(tuple2.Item2);
-        return result;
-    }
-}

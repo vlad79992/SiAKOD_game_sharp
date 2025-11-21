@@ -8,7 +8,6 @@ internal class GameLogic
 {
     private readonly RenderWindow window;
     private readonly Camera camera;
-    private readonly Controls controls;
     private readonly Render render;
 
     private Dictionary<Line, bool> lines = new Dictionary<Line, bool>();
@@ -28,11 +27,10 @@ internal class GameLogic
     public int BlueLinesCount { get => lines.Count(l => l.Value); }
     public int RedLinesCount { get => lines.Count(l => !l.Value); }
 
-    public GameLogic(RenderWindow window, Camera camera, Controls controls, Render render, bool vsComputer = true)
+    public GameLogic(RenderWindow window, Camera camera, Render render, bool vsComputer = true)
     {
         this.window = window;
         this.camera = camera;
-        this.controls = controls;
         this.render = render;
         this.vsComputer = vsComputer;
 
@@ -165,15 +163,13 @@ internal class GameLogic
 
     private Line? FindTopLeftBlockingMove(List<Line> freeMoves, Line lastBlueLine)
     {
-        long blueX1 = lastBlueLine.Point1.X;
-        long blueY1 = lastBlueLine.Point1.Y;
-        long blueX2 = lastBlueLine.Point2.X;
-        long blueY2 = lastBlueLine.Point2.Y;
+        var blue1 = lastBlueLine.Point1;
+        var blue2 = lastBlueLine.Point2;
 
-        if (blueX1 == blueX2)
+        if (blue1.X == blue2.X)
         {
-            long x = blueX1;
-            long topY = Math.Min(blueY1, blueY2);
+            long x = blue1.X;
+            long topY = Math.Min(blue1.Y, blue2.Y);
 
             var topLeftBlock = freeMoves.FirstOrDefault(line =>
                 line.Point1.X == x - 1 && line.Point1.Y == topY &&
@@ -183,15 +179,15 @@ internal class GameLogic
                 return topLeftBlock;
 
             var topBlocks = freeMoves.Where(line =>
-                (line.Point1.Y == topY || line.Point2.Y == topY)).ToList();
+                (line.Point1.Y == topY || line.Point2.Y == topY));
 
-            if (topBlocks.Count > 0)
-                return topBlocks[0];
+            if (topBlocks.Any())
+                return topBlocks.First();
         }
         else
         {
-            long y = blueY1;
-            long leftX = Math.Min(blueX1, blueX2);
+            long y = blue1.Y;
+            long leftX = Math.Min(blue1.X, blue2.X);
 
             var topLeftBlock = freeMoves.FirstOrDefault(line =>
                 line.Point1.X == leftX && line.Point1.Y == y - 1 &&
@@ -201,10 +197,10 @@ internal class GameLogic
                 return topLeftBlock;
 
             var leftBlocks = freeMoves.Where(line =>
-                (line.Point1.X == leftX || line.Point2.X == leftX)).ToList();
+                (line.Point1.X == leftX || line.Point2.X == leftX));
 
-            if (leftBlocks.Count > 0)
-                return leftBlocks[0];
+            if (leftBlocks.Any())
+                return leftBlocks.First();
         }
 
         return null;
@@ -248,9 +244,7 @@ internal class GameLogic
 
     private Line? FindCriticalBlock()
     {
-        var blueLines = lines.Where(l => l.Value).Select(l => l.Key).ToList();
-
-        foreach (var blueLine in blueLines)
+        foreach (var blueLine in lines.Where(l => l.Value).Select(l => l.Key))
         {
             var potentialClosure = FindPotentialClosure(blueLine);
             if (potentialClosure != null && !lines.ContainsKey(potentialClosure.Value))
@@ -315,12 +309,11 @@ internal class GameLogic
 
     private void MakeRandomMove()
     {
-        // наверное,его можно сломать если приблизить на область, где все точки использованы
-        var visiblePoints = camera.VisiblePoints.ToArray();
         var random = new Random();
         var possibleMoves = new List<Line>();
 
-        foreach (var point in visiblePoints)
+        // наверное,его можно сломать если приблизить на область, где все точки использованы
+        foreach (var point in camera.VisiblePoints)
         {
             var rightLine = new Line(point, (point.X + 1, point.Y));
             if (!lines.ContainsKey(rightLine))
@@ -339,6 +332,7 @@ internal class GameLogic
         else
         {
             // Если совсем нет ходов, передаем ход синему
+            // У нас же бесконечное поле, как может не быть ходов?
             isBlueTurn = true;
             Console.WriteLine("Computer has no moves, passing turn to Blue");
         }
@@ -399,6 +393,7 @@ internal class GameLogic
         return false;
     }
 
+    // так как это dfs, может произойти переполнение стека
     private bool HasCycleDFS((long, long) current, (long, long) parent,
                            Dictionary<(long, long), List<(long, long)>> graph,
                            HashSet<(long, long)> visited, HashSet<(long, long)> recursionStack)

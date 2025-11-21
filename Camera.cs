@@ -1,19 +1,14 @@
-﻿internal class Camera
-{
-    private (double x, double y) position;
-    private float aspectRatio;
-    private float scale;
-    public Action? CameraChanged;
-    public Camera(
-            (double, double) position = default((double, double)),
-            float aspectRatio = 1.0f,
-            float scale = 1.0f
+﻿internal class Camera(
+        (double, double) position = default((double, double)),
+        float aspectRatio = 1.0f,
+        float scale = 1.0f
         )
-    {
-        this.position = position;
-        this.aspectRatio = aspectRatio;
-        this.scale = scale;
-    }
+{
+    private (double x, double y) position = position;
+    private float aspectRatio = aspectRatio;
+    private float scale = scale;
+    public Action? CameraChanged;
+
     public (double X, double Y) Position 
     { 
         get => position;
@@ -57,18 +52,6 @@
     {
         get
         {
-            float width, height;
-            if (AspectRatio >= 1)
-            {
-                width = Scale;
-                height = Scale / AspectRatio;
-            }
-            else
-            {
-                height = Scale;
-                width = Scale * AspectRatio;
-            }
-
             int pointsAlongLongerSide = (int)Math.Ceiling(Scale);
             int pointsAlongShorterSide = (int)Math.Ceiling(Scale / aspectRatio);
 

@@ -15,7 +15,7 @@ internal static class Program
         Camera camera = new(scale: 2.25f, aspectRatio: 1f);
         Render render = new(window, camera);
         Controls controls = new(window, camera);
-        GameLogic gameLogic = new GameLogic(window, camera, controls, render, vsComputer: true);
+        GameLogic gameLogic = new GameLogic(window, camera, render, vsComputer: true);
 
         camera.CameraChanged?.Invoke();
 
