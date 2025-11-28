@@ -312,14 +312,38 @@ internal class GameLogic
         var random = new Random();
         var possibleMoves = new List<Line>();
 
-        // наверное,его можно сломать если приблизить на область, где все точки использованы
-        foreach (var point in camera.VisiblePoints)
+        // Получаем все существующие точки из линий и добавляем соседние
+        var allPoints = new HashSet<(long, long)>();
+        
+        // Добавляем точки из существующих линий
+        foreach (var line in lines.Keys)
         {
-            var rightLine = new Line(point, (point.X + 1, point.Y));
+            allPoints.Add(line.Point1);
+            allPoints.Add(line.Point2);
+        }
+
+        // Добавляем точки вокруг существующих линий (расширяем область поиска)
+        var extendedPoints = new HashSet<(long, long)>();
+        foreach (var point in allPoints)
+        {
+            // Добавляем точки в радиусе 2 от существующих точек
+            for (long dx = -2; dx <= 2; dx++)
+            {
+                for (long dy = -2; dy <= 2; dy++)
+                {
+                    extendedPoints.Add((point.Item1 + dx, point.Item2 + dy));
+                }
+            }
+        }
+
+        // Генерируем возможные ходы вокруг расширенной области
+        foreach (var point in extendedPoints)
+        {
+            var rightLine = new Line(point, (point.Item1 + 1, point.Item2));
             if (!lines.ContainsKey(rightLine))
                 possibleMoves.Add(rightLine);
 
-            var downLine = new Line(point, (point.X, point.Y + 1));
+            var downLine = new Line(point, (point.Item1, point.Item2 + 1));
             if (!lines.ContainsKey(downLine))
                 possibleMoves.Add(downLine);
         }
@@ -332,7 +356,6 @@ internal class GameLogic
         else
         {
             // Если совсем нет ходов, передаем ход синему
-            // У нас же бесконечное поле, как может не быть ходов?
             isBlueTurn = true;
             Console.WriteLine("Computer has no moves, passing turn to Blue");
         }
