@@ -1,5 +1,4 @@
 using System;
-// вынес line в отдельный файл
 public struct Line : IEquatable<Line>
 {
     public (long X, long Y) Point1 { get; }
