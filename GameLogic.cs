@@ -313,9 +313,7 @@ internal class GameLogic
         var possibleMoves = new List<Line>();
 
         // Получаем все существующие точки из линий и добавляем соседние
-        var allPoints = new HashSet<(long, long)>();
-        
-        // Добавляем точки из существующих линий
+        var allPoints = new HashSet<(long, long)>(); // Добавляем точки из существующих линий
         foreach (var line in lines.Keys)
         {
             allPoints.Add(line.Point1);

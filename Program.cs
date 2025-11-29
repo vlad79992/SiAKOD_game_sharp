@@ -8,7 +8,7 @@ internal static class Program
 {   
     private static void Main()
     {
-        var mode = new SFML.Window.VideoMode(600, 600);
+        var mode = new SFML.Window.VideoMode(1280, 800);
         var window = new SFML.Graphics.RenderWindow(mode, "SIAKOD game");
         window.SetFramerateLimit(60);
 
@@ -107,7 +107,7 @@ internal static class Program
             + "или мышь с нажатым Alt\n"
             + "\tДля начала нажмите любую кнопку.",
             font,
-            60);
+            36);
         text.FillColor = SFML.Graphics.Color.White;
         text.Position = new Vector2f(100, 100);
 

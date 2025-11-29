@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <!--<OutputType>WinExe</OutputType>--> <!--Без окна консоли-->
+    <!--<OutputType>Exe</OutputType>-->
+    <OutputType>WinExe</OutputType> <!--Без окна консоли-->
+	<PublishAot>true</PublishAot>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
